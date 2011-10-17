@@ -5,28 +5,53 @@ binmode( STDOUT, ":utf8" );
 use strict;
 use warnings;
 
+use Getopt::Long;
 use Mojo::Base -strict;
 use Mojo::UserAgent;
 
-my $keep_slashes = 0;
+my $keep_slashes       = 0;
+my $all_pronunciations = 0;
+
+GetOptions(
+    "slash" => \$keep_slashes,
+    "all"   => \$all_pronunciations
+);
 
 @ARGV = qw/please specify phrase/ if not @ARGV;
 
 my $ua = Mojo::UserAgent->new;
 
 for (@ARGV) {
-    $_ = lc;
-    my $page = $ua->get("http://en.wiktionary.org/wiki/$_")->res->dom;
-    my $span = $page->find('.IPA')->first;
-    my $word;
-    if ($span) {
-        $word = $span->text;
-        $word =~ s/\/(.*)\//$1/g if not $keep_slashes;
+    my $orig = lc;
+    my $page = $ua->get("http://en.wiktionary.org/wiki/$orig")->res->dom;
+
+    my $spans = $page->find('.IPA');
+    if ($all_pronunciations) {
+        if ( $spans->size > 0 ) {
+            print $spans->map(
+                sub {
+                    my $txt = $_->text;
+                    $txt =~ s/\/(.*)\//$1/g if not $keep_slashes;
+                    $txt;
+                }
+            )->join(" ");
+            print " ";
+        }
+        else {
+            print "$orig ";
+        }
     }
     else {
-        $word = $_;
+        my $txt;
+        if ( $spans->size > 0 ) {
+            $txt = $spans->shuffle->first->text || $orig;
+            $txt =~ s/\/(.*)\//$1/g if not $keep_slashes;
+        }
+        else {
+            $txt = $orig;
+        }
+        print "$txt ";
     }
-    print "$word ";
 }
 
 print "\n";
