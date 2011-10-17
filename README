@@ -1,3 +1,6 @@
 skreɪp wiktionary fɔː(ɹ) ˈipɒ ˈdeɪtə
 
-ˈjuːsid͡ʒ: $ ipa text to convert
+ˈjuːsid͡ʒ:
+
+    > curl -L http://cpanmin.us | perl - App::cpanminus Mojolicious
+    > ./ipa text to convert
